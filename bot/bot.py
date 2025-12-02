@@ -2,7 +2,6 @@ import logging
 import os
 from pathlib import Path
 
-import httpx
 from dotenv import load_dotenv
 from telegram import InlineKeyboardButton, InlineKeyboardMarkup, Update, WebAppInfo
 from telegram.constants import ParseMode
@@ -14,16 +13,12 @@ logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(name
 logger = logging.getLogger(__name__)
 
 TOKEN = os.getenv("TELEGRAM_BOT_TOKEN")
-API_BASE = os.getenv("API_BASE_URL", "http://localhost:3000")
-ADMIN_SERVICE_BEARER = os.getenv("ADMIN_SERVICE_BEARER")
 CATALOG_URL = os.getenv("CATALOG_URL", "https://example.com")
-ADMIN_URL = os.getenv("ADMIN_WEBAPP_URL", f"{CATALOG_URL}/admin.html")
 LOGO_CANDIDATES = [
   Path(__file__).resolve().parent.parent / "logo.jpg",
   Path(__file__).resolve().parent.parent / "public" / "logo.jpg"
 ]
 LOGO_PATH = next((path for path in LOGO_CANDIDATES if path.exists()), None)
-SUPER_ADMIN = os.getenv("SUPER_ADMIN_USERNAME", "@Lapsus00")
 
 MENU_LINKS = {
   "VETRINA_SHIP_ITA_URL": os.getenv("VETRINA_SHIP_ITA_URL", CATALOG_URL),
@@ -117,23 +112,6 @@ def build_caption(menu_id: str, user_name: str) -> str:
     return build_caption("root", user_name)
   return f"<b>{submenu['title']}</b>\n{submenu['description']}"
 
-async def call_api(method: str, path: str, payload: dict | None = None):
-  headers = {"Authorization": f"Bearer {ADMIN_SERVICE_BEARER}"} if ADMIN_SERVICE_BEARER else {}
-  async with httpx.AsyncClient(timeout=10) as client:
-    response = await client.request(method, f"{API_BASE}{path}", json=payload, headers=headers)
-    response.raise_for_status()
-    if response.content:
-      return response.json()
-    return None
-
-async def get_admins():
-  data = await call_api("GET", "/api/admins")
-  return data.get("admins", [])
-
-async def create_magic_token(username: str):
-  data = await call_api("POST", "/api/auth", {"intent": "create", "username": username})
-  return data["token"], data["expiresInMinutes"]
-
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
   user = update.effective_user
   name = user.first_name or user.full_name or "ospite"
@@ -159,32 +137,6 @@ async def handle_menu_callback(update: Update, context: ContextTypes.DEFAULT_TYP
   else:
     await query.edit_message_text(text=caption, reply_markup=keyboard, parse_mode=ParseMode.HTML)
 
-async def admin(update: Update, context: ContextTypes.DEFAULT_TYPE):
-  user = update.effective_user
-  username = f"@{user.username}" if user.username else None
-  if not username:
-    await update.message.reply_text("Per accedere devi avere un username Telegram pubblico.")
-    return
-  try:
-    admins = await get_admins()
-  except httpx.HTTPError as error:
-    logger.error("Errore API: %s", error)
-    await update.message.reply_text("Servizio momentaneamente non disponibile.")
-    return
-  if username not in admins and username != SUPER_ADMIN:
-    await update.message.reply_text("Non sei autorizzato ad accedere all'area admin.")
-    return
-  try:
-    token, minutes = await create_magic_token(username)
-    link = f"{ADMIN_URL}?token={token}"
-    await update.message.reply_text(
-      f"Link di accesso valido {minutes} minuti:\n{link}",
-      disable_web_page_preview=True
-    )
-  except httpx.HTTPError as error:
-    logger.exception("Impossibile generare token: %s", error)
-    await update.message.reply_text("Non è stato possibile creare il token, riprova.")
-
 async def health(update: Update, context: ContextTypes.DEFAULT_TYPE):
   await update.message.reply_text("✅ Bot operativo")
 
@@ -194,7 +146,6 @@ def main():
   application = Application.builder().token(TOKEN).build()
   application.add_handler(CommandHandler("start", start))
   application.add_handler(CommandHandler("menu", start))
-  application.add_handler(CommandHandler("admin", admin))
   application.add_handler(CommandHandler("ping", health))
   application.add_handler(CallbackQueryHandler(handle_menu_callback, pattern=r"^menu:"))
   logger.info("Bot avviato. In ascolto...")

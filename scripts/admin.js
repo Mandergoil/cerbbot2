@@ -87,14 +87,14 @@ async function apiFetch(path, options = {}) {
   return res.json();
 }
 
-async function exchangeToken(token) {
+async function loginWithPassword(password) {
   const res = await fetch("/api/auth", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ intent: "exchange", token })
+    body: JSON.stringify({ intent: "password", password })
   });
   if (!res.ok) {
-    throw new Error("Token non valido o scaduto");
+    throw new Error("Password errata");
   }
   const data = await res.json();
   saveToken(data.bearer);
@@ -300,9 +300,9 @@ async function removeAdmin(username) {
 function bindEvents() {
   refs.loginForm.addEventListener("submit", async (event) => {
     event.preventDefault();
-    const token = new FormData(refs.loginForm).get("token");
+    const password = new FormData(refs.loginForm).get("password");
     try {
-      await exchangeToken(token);
+      await loginWithPassword(password);
       await loadData();
       showDashboard();
     } catch (error) {
@@ -323,29 +323,15 @@ function bindEvents() {
 }
 
 async function tryAutoLogin() {
-  const params = new URLSearchParams(window.location.search);
-  const tokenFromLink = params.get("token");
   const saved = localStorage.getItem(STORAGE_KEY);
-  if (tokenFromLink) {
-    try {
-      await exchangeToken(tokenFromLink);
-      await loadData();
-      showDashboard();
-      window.history.replaceState({}, document.title, window.location.pathname);
-      return;
-    } catch (error) {
-      setStatus(error.message, "error");
-    }
-  }
-  if (saved) {
-    saveToken(saved);
-    try {
-      await loadData();
-      showDashboard();
-    } catch (error) {
-      clearToken();
-      console.error(error);
-    }
+  if (!saved) return;
+  saveToken(saved);
+  try {
+    await loadData();
+    showDashboard();
+  } catch (error) {
+    clearToken();
+    console.error(error);
   }
 }
 

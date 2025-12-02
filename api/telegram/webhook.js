@@ -3,8 +3,6 @@ import { json, methodNotAllowed, badRequest, unauthorized } from "../../lib/resp
 
 const TOKEN = process.env.TELEGRAM_BOT_TOKEN;
 const API_BASE = process.env.API_BASE_URL || "https://thehistoryfarmbot.vercel.app";
-const ADMIN_SERVICE_BEARER = process.env.ADMIN_SERVICE_BEARER;
-const SUPER_ADMIN = process.env.SUPER_ADMIN_USERNAME || "@Lapsus00";
 const LOGO_URL = process.env.TELEGRAM_LOGO_URL || `${process.env.PUBLIC_WEBAPP_URL || API_BASE}/logo.jpg`;
 const TELEGRAM_SECRET = process.env.TELEGRAM_WEBHOOK_SECRET;
 
@@ -166,66 +164,12 @@ async function handleMenuCallback(query) {
   }
 }
 
-async function callBackend(path, { method = "GET", body } = {}) {
-  if (!ADMIN_SERVICE_BEARER) {
-    throw new Error("ADMIN_SERVICE_BEARER non impostato");
-  }
-  const res = await fetch(`${API_BASE}${path}`, {
-    method,
-    headers: {
-      Authorization: `Bearer ${ADMIN_SERVICE_BEARER}`,
-      "Content-Type": "application/json"
-    },
-    body: body ? JSON.stringify(body) : undefined
-  });
-  if (!res.ok) {
-    const text = await res.text();
-    throw new Error(`Backend error ${res.status}: ${text}`);
-  }
-  return res.json();
-}
-
-async function handleAdminCommand(message) {
-  const user = message.from;
-  const username = user?.username ? `@${user.username}` : null;
-  if (!username) {
-    await telegramRequest("sendMessage", {
-      chat_id: message.chat.id,
-      text: "Serve un username pubblico per accedere all'area admin."
-    });
-    return;
-  }
-  const admins = await callBackend("/api/admins");
-  const allowed = admins.admins || [];
-  if (username !== SUPER_ADMIN && !allowed.includes(username)) {
-    await telegramRequest("sendMessage", {
-      chat_id: message.chat.id,
-      text: "Non sei autorizzato ad accedere all'area admin."
-    });
-    return;
-  }
-  const tokenData = await callBackend("/api/auth", {
-    method: "POST",
-    body: { intent: "create", username }
-  });
-  const link = `${process.env.ADMIN_WEBAPP_URL || `${API_BASE}/admin.html`}?token=${tokenData.token}`;
-  await telegramRequest("sendMessage", {
-    chat_id: message.chat.id,
-    text: `Link valido ${tokenData.expiresInMinutes} minuti:\n${link}`,
-    disable_web_page_preview: true
-  });
-}
-
 async function handleMessage(message) {
   if (!message?.text) return;
   const text = message.text.trim();
   const name = displayName(message.from);
   if (text.startsWith("/start") || text.startsWith("/menu")) {
     await sendRootMenu(message.chat.id, name);
-    return;
-  }
-  if (text.startsWith("/admin")) {
-    await handleAdminCommand(message);
     return;
   }
   if (text.startsWith("/ping")) {

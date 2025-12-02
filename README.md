@@ -26,25 +26,25 @@ Sistema completo per mostrare un catalogo dark-theme attraverso Telegram WebApp,
 | Componente | Stack | Descrizione |
 | --- | --- | --- |
 | Frontend pubblico (`index.html`) | HTML + CSS + JS | Catalogo tre categorie (Italia, Milano, Spagna), lightbox media, tema nero/rosso. |
-| Frontend admin (`admin.html`) | HTML + JS (module) | Login tramite token monouso, CRUD prodotti, gestione admin. |
-| API (`api/*`) | Serverless Vercel Node | CRUD prodotti + gestione admin + auth/token su KV. |
-| Database | Vercel KV | Hash per prodotti, set per admin, chiavi temporanee token. |
-| Bot (`api/telegram/webhook.js`) | Vercel serverless (Node) | Handler webhook Telegram con menu annidato, /admin token, senza VPS. |
+| Frontend admin (`admin.html`) | HTML + JS (module) | Login tramite password statica, CRUD prodotti, gestione admin. |
+| API (`api/*`) | Serverless Vercel Node | CRUD prodotti + gestione admin + auth JWT firmata. |
+| Database | Vercel KV | Hash per prodotti, set per admin, chiavi temporanee token (legacy). |
+| Bot (`api/telegram/webhook.js`) | Vercel serverless (Node) | Handler webhook Telegram con menu annidato e WebApp Vetrina. |
 
 ```
 /
 ├── index.html                # Vetrina pubblica
-├── admin.html                # Dashboard admin (token)
+├── admin.html                # Dashboard admin (password)
 ├── style.css                 # Tema condiviso
 ├── scripts/
 │   ├── catalog.js            # Fetch/render prodotti pubblici
-│   └── admin.js              # Logica token + CRUD
+│   └── admin.js              # Logica password + CRUD
 ├── api/
 │   ├── products/index.js     # GET/POST prodotti
 │   ├── products/[id].js      # GET/PUT/DELETE prodotto
 │   ├── admins/index.js       # GET/POST admin
 │   ├── admins/[username].js  # DELETE admin
-│   ├── auth.js               # Token (create/exchange/impersonate)
+│   ├── auth.js               # Auth password + token legacy
 │   └── telegram/webhook.js   # Handler webhook Telegram
 ├── lib/                      # Utility (KV, auth, body, response)
 ├── bot/bot.py                # Bot Telegram (debug locale)
@@ -69,6 +69,7 @@ Duplicare `.env.example` → `.env` e valorizzare:
 - `TELEGRAM_LOGO_URL` — URL HTTPS dell'immagine da mostrare con `/start` (default al logo deployato su Vercel).
 - `SUPER_ADMIN_USERNAME` — @Lapsus00 (o altro super admin).
 - `API_BASE_URL`, `PUBLIC_WEBAPP_URL`, `ADMIN_WEBAPP_URL` — URL deployati.
+- `ADMIN_STATIC_PASSWORD` — password condivisa per sbloccare la dashboard.
 
 ### Link menu
 Valorizza tutti gli URL `VETRINA_*`, `TELEGRAM_*`, `SIGNAL_*`, `INSTAGRAM_URL`, `CATALOG_URL` affinché i pulsanti del bot puntino ai canali corretti.
@@ -76,7 +77,6 @@ Valorizza tutti gli URL `VETRINA_*`, `TELEGRAM_*`, `SIGNAL_*`, `INSTAGRAM_URL`, 
 ### Backend/Auth
 - `ADMIN_JWT_SECRET` — stringa lunga casuale.
 - `TOKEN_TTL_MINUTES` — scadenza token monouso.
-- `ADMIN_SERVICE_BEARER` — JWT del super admin usato dal bot per chiamare le API. Puoi generarlo con `node -e "import('./lib/auth.js').then(({generateAdminToken})=>console.log(generateAdminToken({username: '@Lapsus00'})))"` dopo aver configurato le variabili.
 
 ### KV
 - `VERCEL_KV_*` — credenziali dell'istanza KV (automatica su Vercel + KV add-on).
@@ -99,7 +99,7 @@ Valorizza tutti gli URL `VETRINA_*`, `TELEGRAM_*`, `SIGNAL_*`, `INSTAGRAM_URL`, 
 
 ### Bot Telegram su Vercel (webhook)
 
-1. Assicurati che il deploy su Vercel esponga `https://<dominio>/api/telegram/webhook` e che le variabili `TELEGRAM_BOT_TOKEN`, `TELEGRAM_WEBHOOK_SECRET`, `ADMIN_SERVICE_BEARER`, `API_BASE_URL`, `ADMIN_WEBAPP_URL` siano valorizzate in **Production**.
+1. Assicurati che il deploy su Vercel esponga `https://<dominio>/api/telegram/webhook` e che le variabili `TELEGRAM_BOT_TOKEN`, `TELEGRAM_WEBHOOK_SECRET`, `API_BASE_URL`, `ADMIN_WEBAPP_URL`, `CATALOG_URL` siano valorizzate in **Production**.
 2. Registra il webhook direttamente verso l'endpoint Vercel:
    ```powershell
    $env:BOT_TOKEN="123:ABC"
@@ -107,18 +107,18 @@ Valorizza tutti gli URL `VETRINA_*`, `TELEGRAM_*`, `SIGNAL_*`, `INSTAGRAM_URL`, 
    $env:WEBHOOK_SECRET="scegli-una-stringa"
    curl "https://api.telegram.org/bot$env:BOT_TOKEN/setWebhook?url=$env:WEBHOOK_URL&secret_token=$env:WEBHOOK_SECRET"
    ```
-3. Telegram inizierà a inviare gli update al serverless: `/start` e `/menu` risponderanno con il menu annidato, `/admin` genera il link monouso via API.
+3. Telegram inizierà a inviare gli update al serverless: `/start` e `/menu` rispondono con il menu annidato (incluso il pulsante WebApp "Vetrina"), `/ping` verifica lo stato.
 4. Per debug locale puoi ancora avviare `bot/bot.py` in polling, ma la produzione resta gestita interamente da Vercel.
 
 ## Flusso admin
 
-1. Super admin (`/admin` sul bot) riceve token monouso (`POST /api/auth intent=create`).
-2. Bot invia link `https://dominio/admin.html?token=XYZ`.
-3. Admin.html chiama `/api/auth` intent `exchange` e riceve JWT per tutte le chiamate CRUD.
-4. Dashboard permette:
+1. L'amministratore apre `https://dominio/admin.html` e inserisce la password configurata in `ADMIN_STATIC_PASSWORD`.
+2. Il frontend chiama `/api/auth` con `intent=password` e riceve un JWT valido `TOKEN_TTL_MINUTES` minuti.
+3. Il JWT autorizza tutte le richieste CRUD e la gestione admin.
+4. La dashboard consente di:
    - Filtrare prodotti per categoria.
    - Creare/modificare/rimuovere prodotti.
-   - Aggiungere admin (solo super admin) e revocare utenti.
+   - Aggiungere o revocare admin (solo super admin identificato nel JWT).
 
 ## Endpoint principali
 
@@ -132,10 +132,11 @@ Valorizza tutti gli URL `VETRINA_*`, `TELEGRAM_*`, `SIGNAL_*`, `INSTAGRAM_URL`, 
 | GET | `/api/admins` | Lista admin | JWT admin |
 | POST | `/api/admins` | Aggiungi admin | JWT super-admin |
 | DELETE | `/api/admins/:username` | Rimuovi admin | JWT super-admin |
-| POST | `/api/auth` (intent=create) | Token monouso | JWT super-admin |
-| POST | `/api/auth` (intent=exchange) | Scambia token in JWT | Nessuno (usa token) |
+| POST | `/api/auth` (intent=password) | Login con password statica → JWT | Password `ADMIN_STATIC_PASSWORD` |
+| POST | `/api/auth` (intent=create) | (Legacy) Token monouso | JWT super-admin |
+| POST | `/api/auth` (intent=exchange) | (Legacy) Scambia token in JWT | Token monouso |
 | GET | `/api/auth` | Chi sono con Bearer | JWT admin |
-| POST | `/api/telegram/webhook` | Handler webhook Telegram (/start, menu, /admin) | Telegram (secret header) |
+| POST | `/api/telegram/webhook` | Handler webhook Telegram (/start, menu, WebApp, /ping) | Telegram (secret header) |
 
 ## Deploy su Vercel
 
@@ -149,7 +150,7 @@ Valorizza tutti gli URL `VETRINA_*`, `TELEGRAM_*`, `SIGNAL_*`, `INSTAGRAM_URL`, 
 ## Roadmap suggerita
 - ✅ Bot Telegram con tastiera e /admin protetto.
 - ✅ Frontend responsive dark.
-- ✅ Dashboard admin con token monouso.
+- ✅ Dashboard admin con password statica.
 - ✅ API REST con KV + JWT.
 - ☐ Endpoint webhook bot (aggiungere `/api/telegram/webhook` se vuoi abilitare webhook su Vercel).
 - ☐ Upload media (integrare storage S3/Supabase e salvare URL nei prodotti).
@@ -157,16 +158,16 @@ Valorizza tutti gli URL `VETRINA_*`, `TELEGRAM_*`, `SIGNAL_*`, `INSTAGRAM_URL`, 
 ## Testing rapido
 
 - `npm run bootstrap` per avere dati.
-- `npx vercel dev` e visita `http://localhost:3000` (catalogo) e `/admin.html` (usa `?token=` generato).
+- `npx vercel dev` e visita `http://localhost:3000` (catalogo) e `/admin.html` (inserisci la password configurata).
 - Avvia il bot, esegui `/start` e verifica immagine + pulsanti.
 
 ## Sicurezza
 
 - HTTPS obbligatorio (garantito su Vercel).
 - Token JWT firmati lato backend (`ADMIN_JWT_SECRET`).
-- Token monouso invalidati alla prima lettura (`consumeToken`).
+- Token monouso (legacy) invalidati alla prima lettura (`consumeToken`).
 - Admin list gestita su KV; solo super admin può promuovere/revocare.
-- Bot usa `ADMIN_SERVICE_BEARER` dedicato; rigenera periodicamente.
+- Password admin salvata solo lato server via variabile d'ambiente (`ADMIN_STATIC_PASSWORD`).
 
 ## Supporto
 
