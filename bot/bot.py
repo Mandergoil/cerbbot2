@@ -4,7 +4,7 @@ from pathlib import Path
 
 import httpx
 from dotenv import load_dotenv
-from telegram import InlineKeyboardButton, InlineKeyboardMarkup, Update
+from telegram import InlineKeyboardButton, InlineKeyboardMarkup, Update, WebAppInfo
 from telegram.constants import ParseMode
 from telegram.ext import Application, CallbackQueryHandler, CommandHandler, ContextTypes
 
@@ -82,7 +82,7 @@ MENU_CONTENT = {
     "title": "🧾 Vetrina",
     "description": "Versione web completa della catalogo experience.",
     "items": [
-      {"label": "Apri WebApp", "url": MENU_LINKS["CATALOG_URL"]}
+      {"label": "Apri WebApp", "web_app": MENU_LINKS["CATALOG_URL"]}
     ]
   }
 }
@@ -96,7 +96,16 @@ def build_keyboard(menu_id: str, user_name: str) -> InlineKeyboardMarkup:
   submenu = MENU_CONTENT.get(menu_id)
   if not submenu:
     return build_keyboard("root", user_name)
-  rows = [[InlineKeyboardButton(entry["label"], url=entry["url"])] for entry in submenu["items"]]
+  rows = []
+  for entry in submenu["items"]:
+    if entry.get("web_app"):
+      rows.append([
+        InlineKeyboardButton(entry["label"], web_app=WebAppInfo(url=entry["web_app"]))
+      ])
+    else:
+      rows.append([
+        InlineKeyboardButton(entry["label"], url=entry["url"])
+      ])
   rows.append([InlineKeyboardButton("⬅️ Torna al menu", callback_data="menu:root")])
   return InlineKeyboardMarkup(rows)
 

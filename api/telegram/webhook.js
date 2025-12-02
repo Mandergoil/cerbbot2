@@ -62,7 +62,7 @@ const MENU_CONTENT = {
   vetrina: {
     title: "🧾 Vetrina",
     description: "Versione web completa della catalogo experience.",
-    items: [{ label: "Apri WebApp", url: MENU_LINKS.CATALOG_URL }]
+    items: [{ label: "Apri WebApp", web_app: MENU_LINKS.CATALOG_URL }]
   }
 };
 
@@ -104,7 +104,10 @@ function buildKeyboard(menuId) {
   if (!submenu) {
     return buildKeyboard("root");
   }
-  const rows = submenu.items.map((entry) => [{ text: entry.label, url: entry.url }]);
+  const rows = submenu.items.map((entry) => [entry.web_app
+    ? { text: entry.label, web_app: { url: entry.web_app } }
+    : { text: entry.label, url: entry.url }
+  ]);
   rows.push([{ text: "⬅️ Torna al menu", callback_data: "menu:root" }]);
   return { inline_keyboard: rows };
 }
