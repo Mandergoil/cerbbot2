@@ -1,0 +1,16 @@
+{
+  "name": "cerbbot2",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "vercel dev",
+    "bootstrap": "node ./scripts/bootstrap.mjs",
+    "lint": "echo 'add linting here'"
+  },
+  "dependencies": {
+    "@vercel/kv": "^1.0.1",
+    "jsonwebtoken": "^9.0.2",
+    "nanoid": "^5.0.7"
+  }
+}

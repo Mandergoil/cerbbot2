@@ -1,0 +1,44 @@
+[
+  {
+    "id": "italia-espresso",
+    "name": "Espresso Elite",
+    "category": "Italia",
+    "media": "https://images.unsplash.com/photo-1447933601403-0c6688de566e",
+    "description": "Blend artigianale con tostatura scura e note di cacao amaro."
+  },
+  {
+    "id": "italia-riserva",
+    "name": "Riserva Napoletana",
+    "category": "Italia",
+    "media": "https://images.unsplash.com/photo-1470337458703-46ad1756a187",
+    "description": "Miscela 80/20 con estrazione cremosa pensata per il mercato italiano."
+  },
+  {
+    "id": "milano-drip",
+    "name": "Drip Milano",
+    "category": "Milano",
+    "media": "https://videos.pexels.com/video-files/3191256/3191256-uhd_2560_1440_30fps.mp4",
+    "description": "Estrazione lenta con filtro V60 e profilo aromatico floreale."
+  },
+  {
+    "id": "milano-tonic",
+    "name": "Milano Tonic",
+    "category": "Milano",
+    "media": "https://images.unsplash.com/photo-1470337458703-46ad1756a187?auto=format&fit=crop&w=800",
+    "description": "Shot freddo con tonica agli agrumi, pensato per i bar di Brera."
+  },
+  {
+    "id": "spagna-castilla",
+    "name": "Castilla Cold Brew",
+    "category": "Spagna",
+    "media": "https://images.unsplash.com/photo-1509042239860-f550ce710b93",
+    "description": "Cold brew con 18 ore di infusione a freddo, finale morbido."
+  },
+  {
+    "id": "spagna-canary",
+    "name": "Canary Nitro",
+    "category": "Spagna",
+    "media": "https://images.unsplash.com/photo-1432107294467-43412b1bed6d",
+    "description": "Nitro coffee con cascara locale e topping di agrumi delle Canarie."
+  }
+]

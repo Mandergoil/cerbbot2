@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="it">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Admin · Potato Drop</title>
+    <link rel="stylesheet" href="./style.css" />
+    <style>
+      .admin-shell {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 2rem 1.5rem 4rem;
+      }
+      .panel {
+        background: rgba(16, 16, 16, 0.9);
+        border-radius: 1.2rem;
+        padding: 1.5rem;
+        border: 1px solid rgba(255, 31, 42, 0.2);
+        margin-bottom: 1.5rem;
+      }
+      form label {
+        display: flex;
+        flex-direction: column;
+        gap: 0.35rem;
+        font-size: 0.9rem;
+        text-transform: uppercase;
+        letter-spacing: 0.06em;
+      }
+      form input,
+      form select,
+      form textarea {
+        background: rgba(255, 255, 255, 0.05);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        border-radius: 0.75rem;
+        padding: 0.65rem;
+        color: #fff;
+        font-size: 1rem;
+      }
+      form textarea {
+        min-height: 140px;
+      }
+      .grid-admin {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+        gap: 1.5rem;
+      }
+      button.primary {
+        background: var(--accent);
+        color: #000;
+        border: none;
+        border-radius: 0.9rem;
+        padding: 0.85rem 1.5rem;
+        font-weight: 600;
+        cursor: pointer;
+        margin-top: 1rem;
+      }
+      button.secondary {
+        background: transparent;
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        color: #fff;
+        border-radius: 0.9rem;
+        padding: 0.85rem 1.5rem;
+        cursor: pointer;
+        margin-top: 0.5rem;
+      }
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-top: 1rem;
+      }
+      table th,
+      table td {
+        border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+        padding: 0.75rem 0.25rem;
+        text-align: left;
+      }
+      table td button {
+        padding: 0.35rem 0.8rem;
+        border-radius: 999px;
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        background: transparent;
+        color: #fff;
+        cursor: pointer;
+      }
+      .login-panel {
+        max-width: 420px;
+        margin: 5rem auto;
+        text-align: center;
+      }
+      .status {
+        margin-top: 0.5rem;
+        color: var(--muted);
+        font-size: 0.9rem;
+      }
+    </style>
+  </head>
+  <body data-super-admin="@Lapsus00">
+    <main class="admin-shell">
+      <section id="login-view" class="panel login-panel" aria-label="Login">
+        <h1>Accesso amministrativo</h1>
+        <p>Inserisci il token monouso generato dal bot Telegram.</p>
+        <form id="login-form">
+          <label>
+            Token
+            <input type="text" name="token" placeholder="es. Q8Z1HS3K4P" required />
+          </label>
+          <button class="primary" type="submit">Entra</button>
+          <p class="status" id="login-status"></p>
+        </form>
+      </section>
+
+      <section id="dashboard" class="panel" hidden>
+        <header>
+          <h1>Dashboard</h1>
+          <p>Gestione prodotti e amministratori</p>
+          <button class="secondary" id="logout-btn">Esci</button>
+        </header>
+        <div class="grid-admin">
+          <div class="panel">
+            <h2>Prodotti</h2>
+            <div class="filters small" id="admin-filters"></div>
+            <table aria-label="Elenco prodotti">
+              <thead>
+                <tr>
+                  <th>Nome</th>
+                  <th>Categoria</th>
+                  <th>Media</th>
+                  <th></th>
+                </tr>
+              </thead>
+              <tbody id="products-table"></tbody>
+            </table>
+          </div>
+          <div class="panel">
+            <h2>Modifica / Aggiungi</h2>
+            <form id="product-form">
+              <input type="hidden" name="id" />
+              <label>Nome<input type="text" name="name" required /></label>
+              <label>Categoria
+                <select name="category" required>
+                  <option value="">Seleziona</option>
+                  <option value="Italia">Italia</option>
+                  <option value="Milano">Milano</option>
+                  <option value="Spagna">Spagna</option>
+                </select>
+              </label>
+              <label>URL media<input type="url" name="media" required /></label>
+              <label>Descrizione<textarea name="description" required></textarea></label>
+              <label>
+                Featured
+                <select name="featured">
+                  <option value="false">No</option>
+                  <option value="true">Sì</option>
+                </select>
+              </label>
+              <div>
+                <button class="primary" type="submit">Salva</button>
+                <button class="secondary" type="button" id="reset-form">Reset</button>
+              </div>
+            </form>
+          </div>
+          <div class="panel">
+            <h2>Gestione admin</h2>
+            <form id="admin-form">
+              <label>Username Telegram<input type="text" name="username" placeholder="@utente" required /></label>
+              <button class="primary" type="submit">Aggiungi</button>
+              <p class="status small">Solo il super-admin può promuovere altri admin.</p>
+            </form>
+            <ul id="admins-list"></ul>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <template id="product-row">
+      <tr>
+        <td class="name"></td>
+        <td class="category"></td>
+        <td class="media"></td>
+        <td>
+          <button data-action="edit">Modifica</button>
+          <button data-action="delete">Elimina</button>
+        </td>
+      </tr>
+    </template>
+
+    <template id="admin-item">
+      <li>
+        <span class="username"></span>
+        <button data-action="remove">Rimuovi</button>
+      </li>
+    </template>
+
+    <script type="module" src="./scripts/admin.js"></script>
+  </body>
+</html>

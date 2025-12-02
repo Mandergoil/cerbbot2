@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="it">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#000000" />
+    <title>Vetrina — Potato Drop</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link rel="stylesheet" href="./style.css" />
+  </head>
+  <body>
+    <header class="hero">
+      <img src="./logo.jpg" alt="Logo Potato Drop" />
+      <p class="tagline">MENU / PDR — Telegram WebApp</p>
+      <h1>Vetrina esclusiva</h1>
+      <p>Italia · Milano · Spagna</p>
+      <div class="cta">
+        <a href="/admin.html" class="cta-link">Area admin</a>
+      </div>
+    </header>
+
+    <section class="filters" aria-label="Filtri categoria"></section>
+
+    <main class="catalog">
+      <div id="product-grid" class="grid" aria-live="polite"></div>
+    </main>
+
+    <div id="lightbox" class="lightbox hidden" role="dialog" aria-modal="true">
+      <div class="lightbox-content">
+        <header>
+          <h3>Dettaglio prodotto</h3>
+          <button class="close" aria-label="Chiudi">×</button>
+        </header>
+        <figure></figure>
+        <div class="body">
+          <p></p>
+        </div>
+      </div>
+    </div>
+
+    <footer>
+      <p>© <span id="year"></span> Potato Drop — Tutti i diritti riservati.</p>
+    </footer>
+
+    <script src="./scripts/catalog.js" type="module"></script>
+    <script>
+      document.querySelector("#year").textContent = new Date().getFullYear();
+    </script>
+  </body>
+</html>
