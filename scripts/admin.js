@@ -9,6 +9,7 @@ const state = {
   filter: "Tutti",
   admins: [],
   superAdmin: document.body.dataset.superAdmin,
+  autoPassword: document.body.dataset.adminPassword || "",
   signatures: {
     products: "",
     admins: ""
@@ -35,6 +36,7 @@ function field(name) {
 }
 
 function setStatus(message, type = "info") {
+  if (!refs.loginStatus) return;
   refs.loginStatus.textContent = message;
   refs.loginStatus.style.color = type === "error" ? "#ff6b6b" : "var(--muted)";
 }
@@ -51,13 +53,13 @@ function clearToken() {
 }
 
 function showDashboard() {
-  refs.loginView.hidden = true;
-  refs.dashboard.hidden = false;
+  if (refs.loginView) refs.loginView.hidden = true;
+  if (refs.dashboard) refs.dashboard.hidden = false;
 }
 
 function showLogin() {
-  refs.loginView.hidden = false;
-  refs.dashboard.hidden = true;
+  if (refs.loginView) refs.loginView.hidden = false;
+  if (refs.dashboard) refs.dashboard.hidden = true;
 }
 
 async function apiFetch(path, options = {}) {
@@ -298,21 +300,26 @@ async function removeAdmin(username) {
 }
 
 function bindEvents() {
-  refs.loginForm.addEventListener("submit", async (event) => {
-    event.preventDefault();
-    const password = new FormData(refs.loginForm).get("password");
-    try {
-      await loginWithPassword(password);
-      await loadData();
-      showDashboard();
-    } catch (error) {
-      setStatus(error.message, "error");
-    }
-  });
-  refs.logoutBtn.addEventListener("click", () => {
-    clearToken();
-    showLogin();
-  });
+  if (refs.loginForm) {
+    refs.loginForm.addEventListener("submit", async (event) => {
+      event.preventDefault();
+      const password = new FormData(refs.loginForm).get("password");
+      try {
+        await loginWithPassword(password);
+        await loadData();
+        showDashboard();
+      } catch (error) {
+        setStatus(error.message, "error");
+      }
+    });
+  }
+  if (refs.logoutBtn) {
+    refs.logoutBtn.addEventListener("click", () => {
+      clearToken();
+      showLogin();
+      authenticate();
+    });
+  }
   refs.productForm.addEventListener("submit", (event) => {
     handleProductSubmit(event).catch((error) => alert(error.message));
   });
@@ -324,21 +331,53 @@ function bindEvents() {
 
 async function tryAutoLogin() {
   const saved = localStorage.getItem(STORAGE_KEY);
-  if (!saved) return;
+  if (!saved) return false;
   saveToken(saved);
   try {
     await loadData();
     showDashboard();
+    return true;
   } catch (error) {
     clearToken();
     console.error(error);
+    return false;
   }
 }
 
-function init() {
-  bindEvents();
-  renderFilters();
-  tryAutoLogin();
+async function autoLoginWithPreset() {
+  if (!state.autoPassword) {
+    setStatus("Password automatica non configurata", "error");
+    showLogin();
+    return false;
+  }
+  try {
+    setStatus("Connessione alla dashboard...");
+    await loginWithPassword(state.autoPassword);
+    await loadData();
+    showDashboard();
+    return true;
+  } catch (error) {
+    setStatus(error.message, "error");
+    showLogin();
+    return false;
+  }
 }
 
-document.addEventListener("DOMContentLoaded", init);
+async function authenticate() {
+  const loggedIn = await tryAutoLogin();
+  if (loggedIn) return;
+  await autoLoginWithPreset();
+}
+
+async function init() {
+  bindEvents();
+  renderFilters();
+  await authenticate();
+}
+
+document.addEventListener("DOMContentLoaded", () => {
+  init().catch((error) => {
+    console.error(error);
+    setStatus(error.message, "error");
+  });
+});

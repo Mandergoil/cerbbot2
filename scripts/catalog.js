@@ -1,8 +1,45 @@
 const categories = ["Italia", "Milano", "Spagna"];
 const POLL_INTERVAL = 10000;
+const SAMPLE_PRODUCTS = [
+  {
+    id: "italia-velvet",
+    name: "Italia Velvet",
+    category: "Italia",
+    media: "https://images.unsplash.com/photo-1509042239860-f550ce710b93?auto=format&fit=crop&w=800&q=80",
+    description: "Miscela scura con note di cacao e amarena. Selezione limitata per i clienti VIP."
+  },
+  {
+    id: "italia-notte",
+    name: "Italia Notte",
+    category: "Italia",
+    media: "https://images.unsplash.com/photo-1509042239860-f550ce710b93?auto=format&fit=crop&w=801&q=80",
+    description: "Taglio vellutato per degustazioni private. Packaging olografico firmato The History Farm."
+  },
+  {
+    id: "milano-underground",
+    name: "Milano Underground",
+    category: "Milano",
+    media: "https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?auto=format&fit=crop&w=800&q=80",
+    description: "Drop urbano pensato per i clienti del circuito milanese. Disponibile solo su appuntamento."
+  },
+  {
+    id: "milano-neon",
+    name: "Milano Neon",
+    category: "Milano",
+    media: "https://images.unsplash.com/photo-1498050108023-c5249f4df085?auto=format&fit=crop&w=800&q=80",
+    description: "Linea fluorescente con inserti metallici. Box numerati e certificato digitale."
+  },
+  {
+    id: "spagna-costa",
+    name: "Spagna Costa",
+    category: "Spagna",
+    media: "https://images.unsplash.com/photo-1481277542470-605612bd2d61?auto=format&fit=crop&w=800&q=80",
+    description: "Blend estivo ispirato alla costa iberica. Inclusa spedizione express dal nodo di Barcellona."
+  }
+];
 const state = {
-  products: [],
-  filtered: [],
+  products: SAMPLE_PRODUCTS,
+  filtered: SAMPLE_PRODUCTS,
   active: "Tutti",
   signature: "",
   pollHandle: null
@@ -131,6 +168,7 @@ function startLiveUpdates() {
 async function main() {
   setupLightbox();
   renderFilters();
+  applyActiveFilter();
   try {
     await fetchProducts();
     startLiveUpdates();
