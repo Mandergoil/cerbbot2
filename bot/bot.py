@@ -13,7 +13,7 @@ logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(name
 logger = logging.getLogger(__name__)
 
 TOKEN = os.getenv("TELEGRAM_BOT_TOKEN")
-CATALOG_URL = os.getenv("CATALOG_URL", "https://example.com")
+CATALOG_URL = os.getenv("CATALOG_URL", "https://thehistoryfarm.mysellauth.com/")
 LOGO_CANDIDATES = [
   Path(__file__).resolve().parent.parent / "logo.jpg",
   Path(__file__).resolve().parent.parent / "public" / "logo.jpg"
@@ -75,7 +75,7 @@ MENU_CONTENT = {
   },
   "vetrina": {
     "title": "🧾 Vetrina",
-    "description": "Versione web completa della catalogo experience.",
+    "description": "Esplora il nostro catalogo.",
     "items": [
       {"label": "Apri WebApp", "web_app": MENU_LINKS["CATALOG_URL"]}
     ]

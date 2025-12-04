@@ -1,48 +1,327 @@
 <!DOCTYPE html>
 <html lang="it">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta name="theme-color" content="#000000" />
-    <title>Vetrina</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link rel="stylesheet" href="./style.css" />
-  </head>
-  <body>
-    <header class="hero">
-      <img src="./logo.jpg" alt="Logo" />
-      <p class="tagline">The History Farm</p>
-      <h1>Vetrina esclusiva</h1>
-      <p>Italia · Milano · Spagna</p>
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="theme-color" content="#040404" />
+  <title>The History Farm · Catalogo</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      color-scheme: dark;
+      --bg: #040404;
+      --bg-card: #101018;
+      --border: rgba(255, 255, 255, 0.12);
+      --accent: #ef233c;
+      --accent-soft: rgba(239, 35, 60, 0.14);
+      --text: #f5f5f5;
+      --text-soft: rgba(255, 255, 255, 0.7);
+      font-family: 'Space Grotesk', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      background: radial-gradient(circle at top, rgba(239, 35, 60, 0.2), transparent 55%), var(--bg);
+      color: var(--text);
+      line-height: 1.5;
+    }
+
+    .shell {
+      width: min(960px, 100%);
+      margin: 0 auto;
+      padding: clamp(1.2rem, 4vw, 2.5rem);
+    }
+
+    header {
+      display: flex;
+      flex-direction: column;
+      gap: 0.85rem;
+      align-items: center;
+      text-align: center;
+      margin-bottom: 2.5rem;
+    }
+
+    .logo-ring {
+      width: 120px;
+      height: 120px;
+      border-radius: 50%;
+      border: 2px solid rgba(255, 255, 255, 0.08);
+      display: grid;
+      place-items: center;
+      background: radial-gradient(circle, rgba(239, 35, 60, 0.25), rgba(0, 0, 0, 0.8));
+      box-shadow: 0 10px 40px rgba(239, 35, 60, 0.35);
+    }
+
+    header img {
+      width: 72px;
+      height: 72px;
+      object-fit: contain;
+      filter: drop-shadow(0 6px 15px rgba(0, 0, 0, 0.4));
+    }
+
+    header h1 {
+      margin: 0;
+      font-size: clamp(1.7rem, 4vw, 2.4rem);
+      letter-spacing: 0.05em;
+    }
+
+    header p {
+      margin: 0;
+      color: var(--text-soft);
+    }
+
+    .controls {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 1rem;
+      align-items: center;
+      margin-bottom: 1.5rem;
+    }
+
+    .filters {
+      display: flex;
+      gap: 0.4rem;
+      flex-wrap: wrap;
+    }
+
+    .filter {
+      padding: 0.45rem 1rem;
+      border-radius: 999px;
+      border: 1px solid var(--border);
+      background: rgba(255, 255, 255, 0.02);
+      color: var(--text);
+      font-size: 0.8rem;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    .filter[data-active="true"] {
+      background: var(--accent);
+      border-color: transparent;
+      box-shadow: 0 10px 20px rgba(239, 35, 60, 0.4);
+    }
+
+    .search {
+      flex: 1 1 200px;
+      position: relative;
+    }
+
+    .search input {
+      width: 100%;
+      border-radius: 999px;
+      border: 1px solid var(--border);
+      background: rgba(255, 255, 255, 0.02);
+      color: var(--text);
+      padding: 0.75rem 1.05rem 0.75rem 2.6rem;
+      font-size: 0.95rem;
+    }
+
+    .search svg {
+      position: absolute;
+      left: 1rem;
+      top: 50%;
+      width: 1rem;
+      height: 1rem;
+      transform: translateY(-50%);
+      stroke: var(--text-soft);
+    }
+
+    .grid {
+      display: grid;
+      gap: 1rem;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    }
+
+    .card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 1rem;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      min-height: 280px;
+    }
+
+    .card-media {
+      position: relative;
+      aspect-ratio: 4 / 3;
+      overflow: hidden;
+      background: rgba(255, 255, 255, 0.02);
+    }
+
+    .card-media img,
+    .card-media video {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+    }
+
+    .card-media video {
+      filter: saturate(1.15);
+    }
+
+    .card-body {
+      padding: 1.2rem;
+      display: flex;
+      flex-direction: column;
+      gap: 0.6rem;
+    }
+
+    .card span {
+      font-size: 0.75rem;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--accent);
+    }
+
+    .card h3 { margin: 0; font-size: 1.2rem; }
+    .card p { margin: 0; color: var(--text-soft); }
+
+    .empty {
+      grid-column: 1 / -1;
+      padding: 2rem;
+      border: 1px dashed var(--border);
+      border-radius: 1rem;
+      text-align: center;
+      color: var(--text-soft);
+    }
+
+    footer {
+      margin-top: 3rem;
+      text-align: center;
+      color: var(--text-soft);
+      font-size: 0.8rem;
+    }
+  </style>
+</head>
+<body>
+  <div class="shell">
+    <header>
+      <div class="logo-ring">
+        <img src="logo.jpg" alt="The History Farm" />
+      </div>
+      <h1>Catalogo Telegram · The History Farm</h1>
+      <p>Set dedicati per Italia, Milano e Spagna. Tutto in nero e rosso, pronto per la WebApp.</p>
     </header>
 
-    <section class="filters" aria-label="Filtri categoria"></section>
-
-    <main class="catalog">
-      <div id="product-grid" class="grid" aria-live="polite"></div>
-    </main>
-
-    <div id="lightbox" class="lightbox hidden" role="dialog" aria-modal="true">
-      <div class="lightbox-content">
-        <header>
-          <h3>Dettaglio prodotto</h3>
-          <button class="close" aria-label="Chiudi">×</button>
-        </header>
-        <figure></figure>
-        <div class="body">
-          <p></p>
-        </div>
+    <div class="controls">
+      <div class="filters" role="tablist">
+        <button class="filter" data-filter="all" data-active="true">Tutte</button>
+        <button class="filter" data-filter="italia">Italia</button>
+        <button class="filter" data-filter="milano">Milano</button>
+        <button class="filter" data-filter="spagna">Spagna</button>
       </div>
+      <label class="search">
+        <input type="search" placeholder="Cerca" aria-label="Cerca prodotti" />
+        <svg viewBox="0 0 24 24" fill="none" stroke-width="1.5">
+          <circle cx="11" cy="11" r="7" />
+          <path d="m16 16 4 4" />
+        </svg>
+      </label>
     </div>
 
-    <footer>
-      <p>© <span id="year"></span> The History Farm — Tutti i diritti riservati.</p>
-    </footer>
+    <section class="grid" id="grid" aria-live="polite"></section>
+    <footer>Backend Python · dati sincronizzati con l'area admin.</footer>
+  </div>
 
-    <script src="./scripts/catalog.js" type="module"></script>
-    <script>
-      document.querySelector("#year").textContent = new Date().getFullYear();
-    </script>
-  </body>
+  <script>
+    const qs = (sel, scope = document) => scope.querySelector(sel);
+    const qsa = (sel, scope = document) => [...scope.querySelectorAll(sel)];
+    const state = { products: [], filter: 'all', query: '' };
+
+    const formatCategory = (cat) => ({ italia: 'Italia', milano: 'Milano', spagna: 'Spagna' }[cat] || cat);
+    const sanitize = (value = '') => String(value)
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;');
+    const isVideo = (url = '') => /\.(mp4|webm|ogg)$/i.test(url) || url.toLowerCase().includes('video');
+    const buildMedia = (item) => {
+      if (!item.mediaUrl) return '';
+      const safeUrl = sanitize(item.mediaUrl);
+      if (isVideo(item.mediaUrl)) {
+        return `<div class="card-media"><video src="${safeUrl}" autoplay loop muted playsinline></video></div>`;
+      }
+      return `<div class="card-media"><img src="${safeUrl}" alt="${sanitize(item.name || 'Media')}" loading="lazy" /></div>`;
+    };
+
+    const fetchProducts = async () => {
+      try {
+        const res = await fetch('/api/products');
+        if (!res.ok) throw new Error('unable to load');
+        state.products = await res.json();
+        render();
+      } catch (error) {
+        qs('#grid').innerHTML = '<div class="empty">Impossibile caricare i prodotti.</div>';
+      }
+    };
+
+    const filtered = () => {
+      const query = state.query.trim().toLowerCase();
+      return state.products.filter((product) => {
+        const byCategory = state.filter === 'all' || product.category === state.filter;
+        const byQuery = !query ||
+          product.name.toLowerCase().includes(query) ||
+          product.description.toLowerCase().includes(query);
+        return byCategory && byQuery;
+      });
+    };
+
+    const render = () => {
+      const container = qs('#grid');
+      const items = filtered();
+      if (!items.length) {
+        container.innerHTML = '<div class="empty">Nessun prodotto per questo filtro.</div>';
+        return;
+      }
+      container.innerHTML = items.map((item) => `
+        <article class="card">
+          ${buildMedia(item)}
+          <div class="card-body">
+            <span>${formatCategory(item.category)}</span>
+            <h3>${sanitize(item.name)}</h3>
+            <p>${sanitize(item.description)}</p>
+          </div>
+        </article>`).join('');
+    };
+
+    const bindFilters = () => {
+      qsa('.filter').forEach((btn) => {
+        btn.addEventListener('click', () => {
+          qsa('.filter').forEach((b) => b.dataset.active = 'false');
+          btn.dataset.active = 'true';
+          state.filter = btn.dataset.filter;
+          render();
+        });
+      });
+      qs('.search input').addEventListener('input', (ev) => {
+        state.query = ev.target.value;
+        render();
+      });
+    };
+
+    const initTelegram = () => {
+      if (window.Telegram?.WebApp) {
+        const tg = window.Telegram.WebApp;
+        tg.ready();
+        tg.setHeaderColor('#040404');
+        tg.setBackgroundColor('#040404');
+      }
+    };
+
+    document.addEventListener('DOMContentLoaded', () => {
+      bindFilters();
+      fetchProducts();
+      initTelegram();
+    });
+  </script>
+</body>
 </html>

@@ -1,189 +1,462 @@
 <!DOCTYPE html>
 <html lang="it">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Admin · Potato Drop</title>
-    <link rel="stylesheet" href="./style.css" />
-    <style>
-      .admin-shell {
-        max-width: 1200px;
-        margin: 0 auto;
-        padding: 2rem 1.5rem 4rem;
-      }
-      .panel {
-        background: rgba(16, 16, 16, 0.9);
-        border-radius: 1.2rem;
-        padding: 1.5rem;
-        border: 1px solid rgba(255, 31, 42, 0.2);
-        margin-bottom: 1.5rem;
-      }
-      form label {
-        display: flex;
-        flex-direction: column;
-        gap: 0.35rem;
-        font-size: 0.9rem;
-        text-transform: uppercase;
-        letter-spacing: 0.06em;
-      }
-      form input,
-      form select,
-      form textarea {
-        background: rgba(255, 255, 255, 0.05);
-        border: 1px solid rgba(255, 255, 255, 0.1);
-        border-radius: 0.75rem;
-        padding: 0.65rem;
-        color: #fff;
-        font-size: 1rem;
-      }
-      form textarea {
-        min-height: 140px;
-      }
-      .grid-admin {
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
-        gap: 1.5rem;
-      }
-      button.primary {
-        background: var(--accent);
-        color: #000;
-        border: none;
-        border-radius: 0.9rem;
-        padding: 0.85rem 1.5rem;
-        font-weight: 600;
-        cursor: pointer;
-        margin-top: 1rem;
-      }
-      button.secondary {
-        background: transparent;
-        border: 1px solid rgba(255, 255, 255, 0.2);
-        color: #fff;
-        border-radius: 0.9rem;
-        padding: 0.85rem 1.5rem;
-        cursor: pointer;
-        margin-top: 0.5rem;
-      }
-      table {
-        width: 100%;
-        border-collapse: collapse;
-        margin-top: 1rem;
-      }
-      table th,
-      table td {
-        border-bottom: 1px solid rgba(255, 255, 255, 0.05);
-        padding: 0.75rem 0.25rem;
-        text-align: left;
-      }
-      table td button {
-        padding: 0.35rem 0.8rem;
-        border-radius: 999px;
-        border: 1px solid rgba(255, 255, 255, 0.2);
-        background: transparent;
-        color: #fff;
-        cursor: pointer;
-      }
-      .login-panel {
-        max-width: 420px;
-        margin: 5rem auto;
-        text-align: center;
-      }
-      .status {
-        margin-top: 0.5rem;
-        color: var(--muted);
-        font-size: 0.9rem;
-      }
-    </style>
-  </head>
-  <body data-super-admin="@Lapsus00" data-admin-password="history2552@#">
-    <main class="admin-shell">
-      <section id="login-view" class="panel login-panel" aria-label="Login">
-        <h1>Connessione alla dashboard</h1>
-        <p>Accesso automatico in corso...</p>
-        <p class="status" id="login-status"></p>
-      </section>
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="theme-color" content="#040404" />
+  <title>Admin · The History Farm</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      color-scheme: dark;
+      --bg: #040404;
+      --panel: #0c0c13;
+      --border: rgba(255, 255, 255, 0.1);
+      --accent: #ef233c;
+      --accent-soft: rgba(239, 35, 60, 0.15);
+      --text: #f5f5f5;
+      --text-soft: rgba(255, 255, 255, 0.75);
+      font-family: 'Space Grotesk', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    }
 
-      <section id="dashboard" class="panel" hidden>
-        <header>
-          <h1>Dashboard</h1>
-          <p>Gestione prodotti e amministratori</p>
-          <button class="secondary" id="logout-btn">Esci</button>
-        </header>
-        <div class="grid-admin">
-          <div class="panel">
-            <h2>Prodotti</h2>
-            <div class="filters small" id="admin-filters"></div>
-            <table aria-label="Elenco prodotti">
-              <thead>
-                <tr>
-                  <th>Nome</th>
-                  <th>Categoria</th>
-                  <th>Media</th>
-                  <th></th>
-                </tr>
-              </thead>
-              <tbody id="products-table"></tbody>
-            </table>
-          </div>
-          <div class="panel">
-            <h2>Modifica / Aggiungi</h2>
-            <form id="product-form">
-              <input type="hidden" name="id" />
-              <label>Nome<input type="text" name="name" required /></label>
-              <label>Categoria
-                <select name="category" required>
-                  <option value="">Seleziona</option>
-                  <option value="Italia">Italia</option>
-                  <option value="Milano">Milano</option>
-                  <option value="Spagna">Spagna</option>
-                </select>
-              </label>
-              <label>URL media<input type="url" name="media" required /></label>
-              <label>Descrizione<textarea name="description" required></textarea></label>
-              <label>
-                Featured
-                <select name="featured">
-                  <option value="false">No</option>
-                  <option value="true">Sì</option>
-                </select>
-              </label>
-              <div>
-                <button class="primary" type="submit">Salva</button>
-                <button class="secondary" type="button" id="reset-form">Reset</button>
-              </div>
-            </form>
-          </div>
-          <div class="panel">
-            <h2>Gestione admin</h2>
-            <form id="admin-form">
-              <label>Username Telegram<input type="text" name="username" placeholder="@utente" required /></label>
-              <button class="primary" type="submit">Aggiungi</button>
-              <p class="status small">Solo il super-admin può promuovere altri admin.</p>
-            </form>
-            <ul id="admins-list"></ul>
-          </div>
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      background: radial-gradient(circle at top, rgba(239, 35, 60, 0.2), transparent 50%), var(--bg);
+      color: var(--text);
+    }
+
+    .shell {
+      width: min(1080px, 100%);
+      margin: 0 auto;
+      padding: clamp(1rem, 4vw, 2.5rem);
+      display: grid;
+      gap: 1.5rem;
+    }
+
+    header {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 1rem;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    h1 { margin: 0; font-size: clamp(1.5rem, 4vw, 2.2rem); }
+
+    .btn {
+      border: 1px solid var(--border);
+      border-radius: 0.9rem;
+      background: transparent;
+      color: var(--text);
+      padding: 0.6rem 1rem;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      font-size: 0.75rem;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    .btn.primary {
+      background: var(--accent);
+      border-color: var(--accent);
+      color: #fff;
+      box-shadow: 0 10px 25px rgba(239, 35, 60, 0.35);
+    }
+
+    .panel {
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: 1.1rem;
+      padding: 1.2rem;
+      box-shadow: 0 15px 35px rgba(0, 0, 0, 0.5);
+    }
+
+    form {
+      display: grid;
+      gap: 1rem;
+    }
+
+    label {
+      display: grid;
+      gap: 0.4rem;
+      font-size: 0.8rem;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+
+    input, select, textarea {
+      border-radius: 0.9rem;
+      border: 1px solid var(--border);
+      background: rgba(255, 255, 255, 0.02);
+      color: var(--text);
+      padding: 0.7rem 0.9rem;
+      font-family: inherit;
+      font-size: 1rem;
+    }
+
+    textarea { min-height: 110px; resize: vertical; }
+
+    .form-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 1rem;
+    }
+
+    .actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.6rem;
+    }
+
+    .media-preview,
+    .thumb {
+      border-radius: 1rem;
+      border: 1px solid var(--border);
+      background: rgba(255, 255, 255, 0.02);
+      overflow: hidden;
+    }
+
+    .media-preview {
+      min-height: 180px;
+      display: grid;
+      place-items: center;
+      padding: 0.5rem;
+    }
+
+    .media-preview video,
+    .media-preview img,
+    .thumb video,
+    .thumb img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+    }
+
+    .thumb {
+      margin-bottom: 0.8rem;
+      max-height: 160px;
+      aspect-ratio: 4 / 3;
+    }
+
+    .list-header {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 1rem;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 1rem;
+    }
+
+    .list {
+      display: grid;
+      gap: 0.8rem;
+    }
+
+    .row {
+      border: 1px solid var(--border);
+      border-radius: 1rem;
+      padding: 1rem;
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 1rem;
+      background: rgba(255, 255, 255, 0.02);
+    }
+
+    .row h3 { margin: 0 0 0.2rem; }
+    .row p { margin: 0; color: var(--text-soft); }
+
+    .row .pill {
+      display: inline-flex;
+      align-items: center;
+      padding: 0.25rem 0.8rem;
+      border-radius: 999px;
+      background: var(--accent-soft);
+      color: var(--accent);
+      font-size: 0.7rem;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      margin-bottom: 0.6rem;
+    }
+
+    .row-actions {
+      display: flex;
+      gap: 0.4rem;
+      flex-wrap: wrap;
+      justify-content: flex-end;
+    }
+
+    .row-actions .btn {
+      padding: 0.35rem 0.7rem;
+      border-radius: 0.6rem;
+      font-size: 0.7rem;
+    }
+
+    .stats {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+      gap: 0.8rem;
+      margin-bottom: 1rem;
+    }
+
+    .stat {
+      border: 1px solid var(--border);
+      border-radius: 1rem;
+      padding: 0.9rem;
+      background: rgba(255, 255, 255, 0.02);
+    }
+
+    .stat span:first-child { text-transform: uppercase; font-size: 0.75rem; letter-spacing: 0.08em; }
+    .stat strong { font-size: 1.7rem; display: block; }
+
+    @media (max-width: 640px) {
+      .row { grid-template-columns: 1fr; }
+      header { flex-direction: column; align-items: flex-start; }
+    }
+  </style>
+</head>
+<body>
+  <div class="shell">
+    <header>
+      <div>
+        <p style="margin:0; text-transform:uppercase; letter-spacing:0.2em; font-size:0.75rem; color:var(--text-soft);">Dashboard</p>
+        <h1>Admin · The History Farm</h1>
+      </div>
+      <div class="actions">
+        <a class="btn" href="/">Vedi catalogo</a>
+        <button class="btn" id="btn-reset">Reset demo</button>
+        <button class="btn" id="btn-export">Export JSON</button>
+      </div>
+    </header>
+
+    <section class="panel">
+      <div class="stats" id="stats"></div>
+      <form id="product-form">
+        <input type="hidden" name="id" />
+        <div class="form-grid">
+          <label>Nome prodotto
+            <input name="name" placeholder="Milano Notturna" required />
+          </label>
+          <label>Categoria
+            <select name="category" required>
+              <option value="italia">Italia</option>
+              <option value="milano">Milano</option>
+              <option value="spagna">Spagna</option>
+            </select>
+          </label>
+          <label>Media URL
+            <input name="mediaUrl" placeholder="https://..." />
+          </label>
         </div>
-      </section>
-    </main>
+        <div class="media-preview" id="media-preview">
+          <small style="color:var(--text-soft); text-transform:none; letter-spacing:0;">Anteprima media (immagine o video .mp4/.webm)</small>
+        </div>
+        <label>Descrizione
+          <textarea name="description" placeholder="Descrizione compatta" required></textarea>
+        </label>
+        <div class="actions">
+          <button type="submit" class="btn primary" id="submit-label">Salva prodotto</button>
+          <button type="button" class="btn" id="btn-cancel">Annulla</button>
+        </div>
+      </form>
+    </section>
 
-    <template id="product-row">
-      <tr>
-        <td class="name"></td>
-        <td class="category"></td>
-        <td class="media"></td>
-        <td>
-          <button data-action="edit">Modifica</button>
-          <button data-action="delete">Elimina</button>
-        </td>
-      </tr>
-    </template>
+    <section class="panel">
+      <div class="list-header">
+        <h2 style="margin:0; text-transform:uppercase; letter-spacing:0.15em; font-size:0.85rem;">Inventario</h2>
+        <input type="search" id="list-search" placeholder="Filtra" style="border-radius:0.8rem; border:1px solid var(--border); background:rgba(255,255,255,0.02); color:var(--text); padding:0.5rem 0.8rem; font-family:inherit;" />
+      </div>
+      <div class="list" id="product-list"></div>
+    </section>
+  </div>
 
-    <template id="admin-item">
-      <li>
-        <span class="username"></span>
-        <button data-action="remove">Rimuovi</button>
-      </li>
-    </template>
+  <script>
+    const API = '/api/products';
+    const qs = (sel, scope = document) => scope.querySelector(sel);
+    const qsa = (sel, scope = document) => [...scope.querySelectorAll(sel)];
+    const state = { products: [], filtered: [], editingId: null };
 
-    <script type="module" src="./scripts/admin.js"></script>
-  </body>
+    const formatCategory = (cat) => ({ italia: 'Italia', milano: 'Milano', spagna: 'Spagna' }[cat] || cat);
+    const sanitize = (value = '') => String(value)
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;');
+    const isVideo = (url = '') => /\.(mp4|webm|ogg)$/i.test(url) || url.toLowerCase().includes('video');
+    const mediaMarkup = (url, alt = '', { wrapClass = '' } = {}) => {
+      if (!url) return '';
+      const safeUrl = sanitize(url);
+      const tag = isVideo(url)
+        ? `<video src="${safeUrl}" autoplay loop muted playsinline></video>`
+        : `<img src="${safeUrl}" alt="${sanitize(alt)}" loading="lazy" />`;
+      return wrapClass ? `<div class="${wrapClass}">${tag}</div>` : tag;
+    };
+    const renderPreviewMedia = (url) => {
+      const preview = qs('#media-preview');
+      if (!preview) return;
+      const markup = mediaMarkup(url, 'Anteprima media');
+      preview.innerHTML = markup || '<small style="color:var(--text-soft); text-transform:none; letter-spacing:0;">Nessun media caricato</small>';
+    };
+
+    const refresh = async () => {
+      const res = await fetch(API);
+      if (!res.ok) throw new Error('Errore caricamento');
+      state.products = await res.json();
+      state.filtered = state.products;
+      renderList();
+      renderStats();
+    };
+
+    const renderStats = () => {
+      const total = state.products.length;
+      const byCat = ['italia', 'milano', 'spagna'].map((cat) => ({
+        cat,
+        count: state.products.filter((p) => p.category === cat).length,
+      }));
+      qs('#stats').innerHTML = [`<div class="stat"><span>Totale</span><strong>${total}</strong></div>`]
+        .concat(byCat.map((c) => `<div class="stat"><span>${formatCategory(c.cat)}</span><strong>${c.count}</strong></div>`))
+        .join('');
+    };
+
+    const renderList = () => {
+      const container = qs('#product-list');
+      if (!state.filtered.length) {
+        container.innerHTML = '<p style="color:var(--text-soft);">Nessun prodotto trovato.</p>';
+        return;
+      }
+      container.innerHTML = state.filtered.map((product) => `
+        <article class="row" data-id="${product.id}">
+          <div>
+            ${mediaMarkup(product.mediaUrl, product.name, { wrapClass: 'thumb' })}
+            <div class="pill">${formatCategory(product.category)}</div>
+            <h3>${sanitize(product.name)}</h3>
+            <p>${sanitize(product.description)}</p>
+            ${product.mediaUrl ? `<small style="color:var(--text-soft);">Media: ${sanitize(product.mediaUrl)}</small>` : ''}
+          </div>
+          <div class="row-actions">
+            <button class="btn" data-action="edit">Modifica</button>
+            <button class="btn" data-action="delete" style="color:var(--accent); border-color:rgba(239,35,60,0.6);">Elimina</button>
+          </div>
+        </article>`).join('');
+    };
+
+    const setForm = (product = null) => {
+      const form = qs('#product-form');
+      form.reset();
+      state.editingId = product?.id || null;
+      qs('#submit-label').textContent = state.editingId ? 'Aggiorna prodotto' : 'Salva prodotto';
+      if (product) {
+        form.name.value = product.name;
+        form.category.value = product.category;
+        form.mediaUrl.value = product.mediaUrl || '';
+        form.description.value = product.description;
+        form.id.value = product.id;
+        renderPreviewMedia(product.mediaUrl);
+      } else {
+        form.id.value = '';
+        renderPreviewMedia('');
+      }
+    };
+
+    const upsertProduct = async (payload) => {
+      const method = state.editingId ? 'PUT' : 'POST';
+      const url = state.editingId ? `${API}/${state.editingId}` : API;
+      const res = await fetch(url, {
+        method,
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+      });
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({}));
+        throw new Error(err.error || 'Errore salvataggio');
+      }
+      await refresh();
+      setForm();
+    };
+
+    const deleteProduct = async (id) => {
+      if (!confirm('Eliminare il prodotto?')) return;
+      const res = await fetch(`${API}/${id}`, { method: 'DELETE' });
+      if (!res.ok) {
+        alert('Errore durante l\'eliminazione');
+        return;
+      }
+      await refresh();
+    };
+
+    const resetDemo = async () => {
+      if (!confirm('Ripristinare i tre prodotti demo?')) return;
+      const res = await fetch(`${API}/reset`, { method: 'POST' });
+      if (!res.ok) {
+        alert('Impossibile ripristinare');
+        return;
+      }
+      await refresh();
+    };
+
+    const exportJson = () => {
+      const payload = JSON.stringify(state.products, null, 2);
+      navigator.clipboard.writeText(payload);
+      alert('JSON copiato negli appunti');
+    };
+
+    document.addEventListener('DOMContentLoaded', () => {
+      refresh().catch(() => {
+        qs('#product-list').innerHTML = '<p style="color:var(--accent);">API non raggiungibile.</p>';
+      });
+
+      qs('#product-form').addEventListener('submit', (event) => {
+        event.preventDefault();
+        const formData = new FormData(event.target);
+        const payload = Object.fromEntries(formData.entries());
+        upsertProduct(payload).catch((err) => alert(err.message));
+      });
+
+      qs('input[name="mediaUrl"]').addEventListener('input', (event) => renderPreviewMedia(event.target.value));
+
+      qs('#product-list').addEventListener('click', (event) => {
+        const btn = event.target.closest('button[data-action]');
+        if (!btn) return;
+        const id = btn.closest('.row').dataset.id;
+        if (btn.dataset.action === 'edit') {
+          const product = state.products.find((p) => p.id === id);
+          setForm(product);
+          window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+        if (btn.dataset.action === 'delete') {
+          deleteProduct(id);
+        }
+      });
+
+      qs('#list-search').addEventListener('input', (event) => {
+        const query = event.target.value.trim().toLowerCase();
+        state.filtered = state.products.filter((product) =>
+          product.name.toLowerCase().includes(query) ||
+          product.description.toLowerCase().includes(query) ||
+          product.category.includes(query)
+        );
+        renderList();
+      });
+
+      qs('#btn-cancel').addEventListener('click', () => setForm());
+      qs('#btn-reset').addEventListener('click', resetDemo);
+      qs('#btn-export').addEventListener('click', exportJson);
+
+      if (window.Telegram?.WebApp) {
+        const tg = window.Telegram.WebApp;
+        tg.ready();
+        tg.expand();
+        tg.setHeaderColor('#040404');
+        tg.setBackgroundColor('#040404');
+      }
+
+      renderPreviewMedia('');
+    });
+  </script>
+</body>
 </html>
